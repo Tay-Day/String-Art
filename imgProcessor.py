@@ -1,52 +1,77 @@
 import numpy as np
 import os
 import matplotlib.image as mpimg
-
+import matplotlib.pyplot as plt
+from PIL import Image
 print(os.getcwd())
 
 def processImage(image_path):
     img = img2grayVect(image_path)
-    radius = min(img.shape) / 2 - 1
+    
+    img = 255 - img
+    radius = min(img.shape) / 2 - 2
     center = (radius + 1, radius + 1)
-    hooks = getHooks(50, radius, center)
-    numLines = 100
+    hooks = getHooks(750, radius, center)
+    plt.scatter(hooks[0], hooks[1])
+    numLines = 200
+    hooks = hooks.T
     current_hook = hooks[0]
+    previous_hook = hooks[0]
     output = []
     for _ in range(numLines):
-        next_hook = findBestHook(img, hooks, current_hook)
+        next_hook = findBestHook(img, hooks, current_hook, previous_hook)
         output.append((current_hook, next_hook))
+        plt.plot([current_hook[0], next_hook[0]], [current_hook[1], next_hook[1]], color='black')
+        previous_hook = current_hook
         current_hook = next_hook
+
+    #plt.imshow(255 - img, cmap="gray")
+    img = 255 *  np.ones([img.shape[0], img.shape[1], 3], dtype=np.uint8)
+    plt.imshow(img)
+    plt.show()
     return output
-def rgb2gray(rgb):
-    return np.dot(rgb[...,:3], [0.299, 0.587, 0.144])
 
 def img2grayVect(image_path):
-    img_rgb = mpimg.imread(image_path)
-    return rgb2gray(img_rgb)
+    img_rgb = Image.open(image_path)
+    img_gray = img_rgb.convert("L")
+    return np.array(img_gray)
 
 def getHooks(numHooks, radius, center):
     step = 2 * np.pi / numHooks #Evenly divide a circle
     theta_vector = np.arange(0, 2 * np.pi, step)
     x_vector = radius * np.cos(theta_vector) + center[0]
     y_vector = radius * np.sin(theta_vector) + center[1]
-    return np.array((x_vector, y_vector)).T
+    return np.array((x_vector, y_vector))
 
-def findBestHook(imgGreyScalePixels, hooks, current_hook):
-    score = float("inf")
+def findBestHook(imgGreyScalePixels, hooks, current_hook, previous_hook):
+    score = float("-inf")
     bestHook = current_hook
+    newLine = []
+    newPixels = []
+    replace_func = np.vectorize(replace_negative_value)
     for new_hook in hooks:
-        if all(new_hook != current_hook):
+        if all(new_hook != current_hook) and all(new_hook != previous_hook):
             pixels, weights = getPixels(current_hook, new_hook)
-            line = 255 * weights # greyscale vector we want to minimize
+            line = 255 * (weights)
             imgLine = []
             for x, y in pixels:
-                imgLine.append(imgGreyScalePixels[x][y])
+                imgLine.append(imgGreyScalePixels[y][x])
             imgLine = np.array(imgLine)
             minimizer = imgLine - line
-            if (np.linalg.norm(minimizer) < score):
+            norm = np.linalg.norm(imgLine)
+            if (norm > score):
+                newLine = replace_func(minimizer)
+                newPixels = pixels
                 bestHook = new_hook
-                score = np.linalg.norm(minimizer)
+                score = norm
+    count = 0
+    for x, y in newPixels:
+        imgGreyScalePixels[y][x] = newLine[count]
+        count += 1
     return bestHook
+
+def replace_negative_value(x):
+   return 0 if x < 0 else x
 
 
 def getPixels(hook1, hook2):
@@ -134,5 +159,5 @@ def xiaoline(x0, y0, x1, y1):
         points = np.array((x,y)).T
         return points, b
 
-print(processImage("Portrait1B&W.jpg"))
+processImage("portrait.jpg")
     
