@@ -7,21 +7,20 @@ print(os.getcwd())
 
 def processImage(image_path):
     img = img2grayVect(image_path)
-    
     img = 255 - img
     radius = min(img.shape) / 2 - 2
     center = (radius + 1, radius + 1)
-    hooks = getHooks(750, radius, center)
+    hooks = getHooks(800, radius, center)
     plt.scatter(hooks[0], hooks[1])
-    numLines = 200
+    numLines = 4000
     hooks = hooks.T
     current_hook = hooks[0]
     previous_hook = hooks[0]
     output = []
     for _ in range(numLines):
-        next_hook = findBestHook(img, hooks, current_hook, previous_hook)
+        next_hook = findBestHook(img, hooks, current_hook, previous_hook, 3)
         output.append((current_hook, next_hook))
-        plt.plot([current_hook[0], next_hook[0]], [current_hook[1], next_hook[1]], color='black')
+        plt.plot([current_hook[0], next_hook[0]], [current_hook[1], next_hook[1]], color='black', linewidth = '0.2')
         previous_hook = current_hook
         current_hook = next_hook
 
@@ -30,6 +29,7 @@ def processImage(image_path):
     plt.imshow(img)
     plt.show()
     return output
+
 
 def img2grayVect(image_path):
     img_rgb = Image.open(image_path)
@@ -43,7 +43,7 @@ def getHooks(numHooks, radius, center):
     y_vector = radius * np.sin(theta_vector) + center[1]
     return np.array((x_vector, y_vector))
 
-def findBestHook(imgGreyScalePixels, hooks, current_hook, previous_hook):
+def findBestHook(imgGreyScalePixels, hooks, current_hook, previous_hook, avoid_white):
     score = float("-inf")
     bestHook = current_hook
     newLine = []
@@ -52,13 +52,13 @@ def findBestHook(imgGreyScalePixels, hooks, current_hook, previous_hook):
     for new_hook in hooks:
         if all(new_hook != current_hook) and all(new_hook != previous_hook):
             pixels, weights = getPixels(current_hook, new_hook)
-            line = 255 * (weights)
+            line = 20 * (weights)
             imgLine = []
             for x, y in pixels:
                 imgLine.append(imgGreyScalePixels[y][x])
             imgLine = np.array(imgLine)
             minimizer = imgLine - line
-            norm = np.linalg.norm(imgLine)
+            norm = np.linalg.norm(imgLine) - (np.linalg.norm(255 - imgLine) / avoid_white)
             if (norm > score):
                 newLine = replace_func(minimizer)
                 newPixels = pixels
