@@ -1,5 +1,17 @@
 # String-Art
-Pass in your jpg file to processImage, this implementation uses a greedy algorithm with a highlight favoring heuristic to choose the darkest line. <br>
+To Use:
+## Upload Image to String-Art folder
+
+## call imgProcessor with the command line arguments [filepath for image] [number of strings] [number of hooks] [Line Strength] [Avoid White Dampener]
+
+Line Strength is a value from 0 - 255 that determines how powerful a string is on your image. In practice small values make the strings fixate on darker areas because they remove less black from the image when drawn. Sticking to around 0-100 for the default string width and using more strings works well.
+
+Avoid White Dampener is a value that refers to the algorithms tendancy to avoid white pixels, sometimes to its detriment, so a larger value will punish the algorithm less for moving over white pixels, and smaller values [1-20] usually find a happy medium.
+
+### EXAMPLE COMMAND LINE CALL:
+python imgProcessor.py portrait.jpg 2000 150 40 4
+
+This implementation uses a greedy algorithm with a highlight favoring heuristic to choose the darkest line. <br>
 Then it removes that line based on the xiaoline algorithms built in brightness function.
 
 In the future those brightness values can be updated to favor pixels in the center (or somewhere else). Performance can also be improved. But with 4000 lines and 800 hooks, 
