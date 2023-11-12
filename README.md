@@ -1,8 +1,10 @@
 # String-Art
-To Use:
-## Upload Image to String-Art folder
+A lightweight program for replicating string art online.
+## To Use:
+### Upload Image to String-Art folder
+You can put it elsewhere just be sure to specify its path relative to the string-Art folder in your call
 
-## call imgProcessor with the command line arguments [filepath for image] [number of strings] [number of hooks] [Line Strength] [Avoid White Dampener]
+### Call imgProcessor with the command line arguments [filepath for image] [number of strings] [number of hooks] [Line Strength] [Avoid White Dampener]
 
 Line Strength is a value from 0 - 255 that determines how powerful a string is on your image. In practice small values make the strings fixate on darker areas because they remove less black from the image when drawn. Sticking to around 0-100 for the default string width and using more strings works well.
 
